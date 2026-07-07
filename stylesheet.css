@@ -176,6 +176,17 @@ body {
   perspective: 1200px;
 }
 
+/* 背景漂浮小球画布 */
+#bubble-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
 .reveal-item {
   opacity: 0.95;
   transform: perspective(1200px) translate3d(0, 0, 0) rotateX(0deg) scale(1);
@@ -279,16 +290,26 @@ body {
   color: #dfefff;
 }
 
+/* ===== 乐队抽屉效果 ===== */
+.band-drawer-row {
+  overflow: visible;
+}
+
+/* [2025.08] 文本下方的图片区：默认被把手盖住 */
 .band-preview {
   display: flex;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 0;
+  padding-top: 0;
+  max-height: 0;
   opacity: 0;
-  transform: translateY(6px);
   pointer-events: none;
-  transition: opacity 0.25s ease, transform 0.25s ease;
+  transition: max-height 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.35s ease 0.05s,
+              margin-top 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              padding-top 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
-  z-index: 5;
+  z-index: 1;
 }
 
 .band-preview img {
@@ -298,13 +319,69 @@ body {
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.16);
   box-shadow: 0 8px 18px rgba(0,0,0,0.28);
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-.news-item:hover .band-preview,
-.band-preview:hover {
+.band-preview img:hover {
+  transform: scale(1.12);
+  box-shadow: 0 12px 28px rgba(0,0,0,0.4), 0 0 18px rgba(100, 180, 255, 0.25);
+}
+
+/* 抽屉把手：[2025.09] 行，默认用 translateY 上移盖住图片 */
+.band-drawer-handle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-top: -28px;
+  margin-left: -122px;
+  transition: margin-top 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  position: relative;
+  z-index: 4;
+}
+
+.band-drawer-handle .news-date {
+  display: inline-block;
+  width: 110px;
+  padding-right: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  box-sizing: content-box;
+}
+
+.news-drawer-text {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  flex: 1 1 auto;
+}
+
+.news-drawer-text .news-eng {
+  flex: 1 1 0;
+  min-width: 0;
+  color: #e9f4ff;
+  opacity: 0.96;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.news-drawer-text .news-zh {
+  flex: 0 0 38%;
+  min-width: 0;
+  color: #aab6c4;
+  opacity: 0.86;
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+/* hover 时：图片展开 + 把手下滑 */
+.band-drawer-row:hover .band-preview {
+  max-height: 100px;
   opacity: 1;
-  transform: translateY(0);
   pointer-events: auto;
+  margin-top: 10px;
+  padding-top: 4px;
+}
+
+.band-drawer-row:hover .band-drawer-handle {
+  margin-top: 0;
 }
 
 @keyframes scroll-unfold {
@@ -579,12 +656,35 @@ strong::after,
   bottom: -1px;
 }
 
-/* ===== 中英文切换按钮 ===== */
-.lang-switch {
+/* ===== 右上角工具栏：时钟 + 语言切换 ===== */
+.top-bar {
   position: fixed;
   top: 20px;
   right: 28px;
   z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lang-clock {
+  font-family: 'Orbitron', 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  color: #d8eeff;
+  background: rgba(6, 10, 20, 0.75);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(120, 180, 255, 0.22);
+  border-radius: 24px;
+  padding: 8px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 12px rgba(80, 150, 255, 0.08);
+  text-shadow: 0 0 8px rgba(100, 180, 255, 0.3);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.lang-switch {
   display: flex;
   align-items: center;
   gap: 6px;

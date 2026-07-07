@@ -18,10 +18,14 @@
 </head>
 
 <body>
-  <div class="lang-switch">
-    <button class="lang-btn" data-lang="en">EN</button>
-    <span class="lang-divider">|</span>
-    <button class="lang-btn active" data-lang="zh">中</button>
+  <canvas id="bubble-canvas"></canvas>
+  <div class="top-bar">
+    <div class="lang-clock" id="live-clock">00:00:00</div>
+    <div class="lang-switch">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <span class="lang-divider">|</span>
+      <button class="lang-btn active" data-lang="zh">中</button>
+    </div>
   </div>
   <table
     style="width:100%;max-width:800px;border:0px;border-spacing:0px;border-collapse:separate;margin-right:auto;margin-left:auto;">
@@ -75,7 +79,7 @@
                           </div>
                         </td>
                       </tr>
-                      <tr class="news-item">
+                      <tr class="news-item band-drawer-row">
                         <td style="width:110px;vertical-align:top;white-space:nowrap;padding:0 12px 8px 0;">
                           <strong class="news-date hover-trigger">[2025.08]</strong>
                         </td>
@@ -84,21 +88,19 @@
                             <div class="news-eng">Founded the band YouthSonata</div>
                             <div class="news-zh">创办乐队YouthSonata</div>
                           </div>
+                          <!-- 图片区：夹在 [2025.08] 文本和 [2025.09] 之间 -->
                           <div class="band-preview">
                             <img src="images/band/21fd38b08a18ae690f4e8b90d1113f8.jpg" alt="band photo 1">
                             <img src="images/band/5fee8bf9742c921f2c15b80deba7384.jpg" alt="band photo 2">
                             <img src="images/band/ecefea2c8b18760a75f96d6ba90c442.jpg" alt="band photo 3">
                           </div>
-                        </td>
-                      </tr>
-                      <tr class="news-item">
-                        <td style="width:110px;vertical-align:top;white-space:nowrap;padding:0 12px 0 0;">
-                          <strong class="news-date">[2025.09]</strong>
-                        </td>
-                        <td style="vertical-align:top;padding:0;">
-                          <div class="news-body">
-                            <div class="news-eng">Become a student of Shanghai Datong High School.</div>
-                            <div class="news-zh">入学上海市大同中学</div>
+                          <!-- [2025.09] 把手：默认向上移动盖住图片，hover 时滑下来 -->
+                          <div class="band-drawer-handle">
+                            <strong class="news-date">[2025.09]</strong>
+                            <span class="news-drawer-text">
+                              <span class="news-eng">Become a student of Shanghai Datong High School.</span>
+                              <span class="news-zh">入学上海市大同中学</span>
+                            </span>
                           </div>
                         </td>
                       </tr>
@@ -238,6 +240,22 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      // 获取用户 IP 地址
+      fetch('https://api.ipify.org?format=json')
+        .then(res => res.json())
+        .then(data => {
+          console.log('User IP:', data.ip);
+        })
+        .catch(() => {
+          // 备用 API
+          fetch('https://api.ip.sb/ip')
+            .then(res => res.text())
+            .then(ip => {
+              console.log('User IP:', ip.trim());
+            })
+            .catch(() => console.log('Failed to fetch IP'));
+        });
+
       const elements = Array.from(document.querySelectorAll('body *'))
         .filter((el) => {
           const tag = el.tagName.toLowerCase();
@@ -443,6 +461,169 @@
       document.querySelectorAll('.lang-aware').forEach(container => {
         wrapLangTexts(container);
       });
+
+      // 实时时钟
+      function updateClock() {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const ss = String(now.getSeconds()).padStart(2, '0');
+        const clockEl = document.getElementById('live-clock');
+        if (clockEl) {
+          clockEl.textContent = hh + ':' + mm + ':' + ss;
+        }
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+
+      // 抽屉把手动态高度计算
+      const drawerHandle = document.querySelector('.band-drawer-handle');
+      if (drawerHandle) {
+        const handleHeight = drawerHandle.getBoundingClientRect().height;
+        drawerHandle.style.marginTop = '-' + Math.ceil(handleHeight) + 'px';
+      }
+      // ===== 背景漂浮小球 =====
+      const canvas = document.getElementById('bubble-canvas');
+      const ctx = canvas.getContext('2d');
+
+      let mouseX = window.innerWidth / 2;
+      let mouseY = window.innerHeight / 2;
+      document.addEventListener('mousemove', function(e) {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
+
+      function resizeCanvas() {
+        canvas.width = document.documentElement.scrollWidth;
+        canvas.height = document.documentElement.scrollHeight;
+      }
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+
+      const bubbles = [];
+      const NORMAL_COUNT = 5;
+
+      // 5 个蓝青色小球
+      for (let i = 0; i < NORMAL_COUNT; i++) {
+        bubbles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          r: 80 + Math.random() * 140,
+          vx: (Math.random() - 0.5) * 1.6,
+          vy: (Math.random() - 0.5) * 1.6,
+          hue: 195 + Math.random() * 35,
+          alpha: 0.08 + Math.random() * 0.08,
+          followMouse: false
+        });
+      }
+
+      // 1 个红色跟随小球
+      bubbles.push({
+        x: canvas.width / 2,
+        y: canvas.height / 2,
+        r: 90 + Math.random() * 80,
+        vx: (Math.random() - 0.5) * 1.2,
+        vy: (Math.random() - 0.5) * 1.2,
+        hue: 0,
+        alpha: 0.13,
+        followMouse: true
+      });
+
+      function updateBubbles() {
+        resizeCanvas();
+
+        for (let i = 0; i < bubbles.length; i++) {
+          const b = bubbles[i];
+
+          // 红色小球轻微跟随鼠标
+          if (b.followMouse) {
+            const dx = mouseX - b.x;
+            const dy = mouseY - b.y;
+            b.vx += dx * 0.008;
+            b.vy += dy * 0.008;
+            // 阻尼
+            b.vx *= 0.98;
+            b.vy *= 0.98;
+            // 速度上限
+            const spd = Math.sqrt(b.vx * b.vx + b.vy * b.vy);
+            const maxSpd = 3;
+            if (spd > maxSpd) {
+              b.vx = (b.vx / spd) * maxSpd;
+              b.vy = (b.vy / spd) * maxSpd;
+            }
+          }
+
+          b.x += b.vx;
+          b.y += b.vy;
+
+          // 边界反弹
+          if (b.x - b.r < 0) { b.x = b.r; b.vx *= -1; }
+          if (b.x + b.r > canvas.width) { b.x = canvas.width - b.r; b.vx *= -1; }
+          if (b.y - b.r < 0) { b.y = b.r; b.vy *= -1; }
+          if (b.y + b.r > canvas.height) { b.y = canvas.height - b.r; b.vy *= -1; }
+
+          // 碰撞检测
+          for (let j = i + 1; j < bubbles.length; j++) {
+            const a = bubbles[j];
+            const dx = b.x - a.x;
+            const dy = b.y - a.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const minDist = b.r + a.r;
+
+            if (dist < minDist && dist > 0) {
+              const overlap = (minDist - dist) / 2;
+              const nx = dx / dist;
+              const ny = dy / dist;
+              b.x += nx * overlap;
+              b.y += ny * overlap;
+              a.x -= nx * overlap;
+              a.y -= ny * overlap;
+
+              const dvx = b.vx - a.vx;
+              const dvy = b.vy - a.vy;
+              const dvDotN = dvx * nx + dvy * ny;
+              if (dvDotN > 0) {
+                b.vx -= dvDotN * nx * 0.8;
+                b.vy -= dvDotN * ny * 0.8;
+                a.vx += dvDotN * nx * 0.8;
+                a.vy += dvDotN * ny * 0.8;
+              }
+            }
+          }
+        }
+      }
+
+      function drawBubbles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (const b of bubbles) {
+          const s = b.followMouse ? 75 : 65;
+          const l = b.followMouse ? 55 : 60;
+          const gradient = ctx.createRadialGradient(b.x, b.y, b.r * 0.15, b.x, b.y, b.r);
+          gradient.addColorStop(0, 'hsla(' + b.hue + ', ' + s + '%, ' + (l + 10) + '%, ' + (b.alpha * 1.8) + ')');
+          gradient.addColorStop(0.5, 'hsla(' + b.hue + ', ' + s + '%, ' + l + '%, ' + b.alpha + ')');
+          gradient.addColorStop(1, 'hsla(' + b.hue + ', ' + (s - 15) + '%, ' + (l - 10) + '%, 0)');
+
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.fillStyle = gradient;
+          ctx.fill();
+
+          ctx.beginPath();
+          ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+          ctx.strokeStyle = 'hsla(' + b.hue + ', ' + s + '%, ' + (l + 8) + '%, ' + (b.alpha * 0.9) + ')';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+
+      function animateBubbles() {
+        updateBubbles();
+        drawBubbles();
+        requestAnimationFrame(animateBubbles);
+      }
+      animateBubbles();
+
     });
   </script>
 </body>
