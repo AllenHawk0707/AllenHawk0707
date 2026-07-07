@@ -749,3 +749,148 @@ strong::after,
 /* news 分栏也跟随全局淡化 */
 .lang-zh .news-eng { opacity: 0.12; }
 .lang-en .news-zh { opacity: 0.1; }
+
+/* ===== 今日人品按钮 ===== */
+.fortune-btn {
+  font-family: 'Orbitron', 'JetBrains Mono', 'Microsoft YaHei', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #d8eeff;
+  background: rgba(6, 10, 20, 0.75);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(120, 180, 255, 0.22);
+  border-radius: 24px;
+  padding: 8px 18px;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 0 0 12px rgba(80, 150, 255, 0.08);
+  text-shadow: 0 0 8px rgba(100, 180, 255, 0.3);
+  white-space: nowrap;
+  transition: all 0.3s ease;
+}
+
+.fortune-btn:hover {
+  color: #ffffff;
+  border-color: rgba(150, 200, 255, 0.45);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45), 0 0 20px rgba(100, 180, 255, 0.2);
+  text-shadow: 0 0 14px rgba(120, 200, 255, 0.5);
+  transform: translateY(-1px);
+}
+
+/* ===== 今日人品弹窗 ===== */
+.fortune-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(6px);
+  z-index: 10000;
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.fortune-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+}
+
+.fortune-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  z-index: 10001;
+  background: linear-gradient(145deg, rgba(12, 20, 38, 0.97), rgba(4, 8, 20, 0.98));
+  border: 1px solid rgba(120, 180, 255, 0.25);
+  border-radius: 24px;
+  padding: 40px 50px 36px;
+  text-align: center;
+  box-shadow:
+    0 30px 70px rgba(0, 0, 0, 0.7),
+    0 0 60px rgba(80, 150, 255, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0.35s ease;
+  min-width: 320px;
+}
+
+.fortune-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.fortune-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 28px;
+  cursor: pointer;
+  transition: color 0.25s ease;
+  line-height: 1;
+  padding: 0 6px;
+}
+
+.fortune-modal-close:hover {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.fortune-modal-title {
+  font-family: 'Orbitron', 'JetBrains Mono', monospace;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: #b8d4f0;
+  text-shadow: 0 0 10px rgba(100, 180, 255, 0.25);
+  margin-bottom: 20px;
+  text-transform: uppercase;
+}
+
+.fortune-modal-emoji {
+  font-size: 64px;
+  margin-bottom: 12px;
+  animation: fortune-pulse 2s ease-in-out infinite;
+}
+
+@keyframes fortune-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+.fortune-modal-score {
+  font-family: 'Orbitron', 'JetBrains Mono', monospace;
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(100, 200, 255, 0.4), 0 0 40px rgba(80, 160, 255, 0.2);
+  margin-bottom: 12px;
+}
+
+.fortune-modal-score span {
+  font-size: 56px;
+}
+
+.fortune-modal-label {
+  font-family: 'Orbitron', 'JetBrains Mono', 'Microsoft YaHei', monospace;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  margin-bottom: 10px;
+}
+
+.fortune-modal-desc {
+  font-family: 'JetBrains Mono', 'Microsoft YaHei', monospace;
+  font-size: 14px;
+  color: #8899b0;
+  letter-spacing: 0.06em;
+  opacity: 0.85;
+}

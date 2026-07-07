@@ -21,6 +21,7 @@
   <canvas id="bubble-canvas"></canvas>
   <div class="top-bar">
     <div class="lang-clock" id="live-clock">00:00:00</div>
+    <button class="fortune-btn" id="fortune-btn">今日人品：✨</button>
     <div class="lang-switch">
       <button class="lang-btn" data-lang="en">EN</button>
       <span class="lang-divider">|</span>
@@ -512,7 +513,7 @@
           vx: (Math.random() - 0.5) * 1.6,
           vy: (Math.random() - 0.5) * 1.6,
           hue: 195 + Math.random() * 35,
-          alpha: 0.08 + Math.random() * 0.08,
+          alpha: 0.15 + Math.random() * 0.10,
           followMouse: false
         });
       }
@@ -525,7 +526,7 @@
         vx: (Math.random() - 0.5) * 1.2,
         vy: (Math.random() - 0.5) * 1.2,
         hue: 0,
-        alpha: 0.13,
+        alpha: 0.22,
         followMouse: true
       });
 
@@ -611,8 +612,8 @@
 
           ctx.beginPath();
           ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-          ctx.strokeStyle = 'hsla(' + b.hue + ', ' + s + '%, ' + (l + 8) + '%, ' + (b.alpha * 0.9) + ')';
-          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'hsla(' + b.hue + ', ' + s + '%, ' + (l + 15) + '%, ' + (b.alpha * 1.8) + ')';
+          ctx.lineWidth = 2;
           ctx.stroke();
         }
       }
@@ -625,7 +626,103 @@
       animateBubbles();
 
     });
+
   </script>
+
+<!-- 今日人品弹窗 -->
+<div class="fortune-overlay" id="fortune-overlay"></div>
+<div class="fortune-modal" id="fortune-modal">
+  <button class="fortune-modal-close" id="fortune-modal-close">&times;</button>
+  <div class="fortune-modal-title">今日人品</div>
+  <div class="fortune-modal-emoji" id="fortune-emoji">✨</div>
+  <div class="fortune-modal-score"><span id="fortune-score">--</span> 分</div>
+  <div class="fortune-modal-label" id="fortune-label">--</div>
+  <div class="fortune-modal-desc" id="fortune-desc">--</div>
+</div>
+
+<script>
+  // ===== 今日人品 =====
+  (function() {
+    // 获取或生成用户唯一ID
+    let userId = localStorage.getItem('fortune_user_id');
+    if (!userId) {
+      userId = 'user_' + Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
+      localStorage.setItem('fortune_user_id', userId);
+    }
+
+    // 简单哈希函数：根据日期+userId生成稳定数值
+    function hashString(str) {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+      }
+      return Math.abs(hash);
+    }
+
+    function getTodayStr() {
+      const d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    const fortuneLevels = [
+      { max: 20, label: '大凶', emoji: '💀', color: '#ff4444', desc: '今天运气不太好，谨慎行事' },
+      { max: 40, label: '小凶', emoji: '😟', color: '#ff8844', desc: '有些小波折，保持平常心' },
+      { max: 55, label: '平平', emoji: '😐', color: '#ccaa44', desc: '平淡的一天，适合思考与学习' },
+      { max: 70, label: '小吉', emoji: '😊', color: '#44cc88', desc: '运气不错，好事即将发生' },
+      { max: 85, label: '中吉', emoji: '😄', color: '#44bbff', desc: '好运相伴，心情愉悦' },
+      { max: 96, label: '大吉', emoji: '🌟', color: '#aa66ff', desc: '今天超棒，锦鲤附体！' },
+      { max: 101, label: '鸿运', emoji: '🔥', color: '#ff66aa', desc: '逆天鸿运！做什么都顺！' }
+    ];
+
+    function getFortune() {
+      const seed = getTodayStr() + '_' + userId;
+      const score = (hashString(seed) % 100) + 1;
+      let level = fortuneLevels[0];
+      for (const l of fortuneLevels) {
+        if (score <= l.max) { level = l; break; }
+      }
+      return { score, ...level };
+    }
+
+    // 弹窗相关
+    const modal = document.getElementById('fortune-modal');
+    const overlay = document.getElementById('fortune-overlay');
+    const closeBtn = document.getElementById('fortune-modal-close');
+    const scoreEl = document.getElementById('fortune-score');
+    const labelEl = document.getElementById('fortune-label');
+    const emojiEl = document.getElementById('fortune-emoji');
+    const descEl = document.getElementById('fortune-desc');
+    const btn = document.getElementById('fortune-btn');
+
+    function openModal() {
+      const f = getFortune();
+      scoreEl.textContent = f.score;
+      labelEl.textContent = f.label;
+      emojiEl.textContent = f.emoji;
+      descEl.textContent = f.desc;
+      labelEl.style.color = f.color;
+      modal.classList.add('active');
+      overlay.classList.add('active');
+    }
+
+    function closeModal() {
+      modal.classList.remove('active');
+      overlay.classList.remove('active');
+    }
+
+    btn.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    overlay.addEventListener('click', closeModal);
+
+    // ESC 关闭
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+  })();
+</script>
+
 </body>
 
 </html>
